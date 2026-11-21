@@ -1,5 +1,5 @@
 // ComHost service worker. Naikkan VERSION setiap ada perubahan file agar cache lama diganti.
-const VERSION = 'comhost-v2';
+const VERSION = 'comhost-v3';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/config.js', 'js/api.js', 'js/app.js', 'manifest.json',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 

@@ -160,11 +160,9 @@ h2 { font: 600 18px/1.2 var(--font-display); margin: 0; }
 .ph .x { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: rgb(0 0 0 / .55); color: #FFFFFF; display: grid; place-items: center; padding: 0; }
 .ph .x .i { width: 13px; height: 13px; stroke-width: 3; }
 .cnt { font-size: 12px; font-weight: 800; color: var(--ink-3); }
-.vbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vbtns { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .vbtn { border: 0; border-radius: 14px; padding: 10px; background: var(--surface-2); color: var(--ink-2); font-weight: 800; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 7px; font-variant-numeric: tabular-nums; transition: background .2s, transform .3s var(--spring); }
 .vbtn:active { transform: scale(.95); }
-.vbtn.on { background: color-mix(in oklab, var(--primary) 16%, var(--surface)); color: color-mix(in oklab, var(--primary) 80%, var(--ink)); }
-.vbtn.on .i { animation: pulse 1s infinite; }
 .vbtn.rec { background: color-mix(in oklab, var(--bad) 14%, var(--surface)); color: color-mix(in oklab, var(--bad) 80%, var(--ink)); }
 .vbtn.rec .i { animation: blink 1s infinite; }
 .clips { display: flex; flex-direction: column; gap: 6px; }
@@ -271,7 +269,6 @@ dd.wait .i { width: 17px; height: 17px; }
 @keyframes toast { from { opacity: 0; transform: translate(-50%, 14px) scale(.9); } }
 @keyframes boing { 0% { transform: scale(.3); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-@keyframes pulse { 50% { transform: scale(1.25); } }
 @keyframes blink { 50% { opacity: .25; } }
 @keyframes pop-in { from { opacity: 0; transform: scale(.92) translateY(-4px); } }
 @keyframes dlg { from { opacity: 0; transform: translate(-50%, -46%) scale(.96); } }
@@ -307,8 +304,6 @@ dd.wait .i { width: 17px; height: 17px; }
 .ph.load, .ph.err { display: grid; place-items: center; color: var(--ink-3); }
 .spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid color-mix(in oklab, currentColor 25%, transparent); border-top-color: currentColor; animation: spin .7s linear infinite; flex: none; }
 .vbtn:disabled { opacity: .45; cursor: not-allowed; }
-.vbtn.busy { opacity: 1; background: color-mix(in oklab, var(--primary) 16%, var(--surface)); color: color-mix(in oklab, var(--primary) 80%, var(--ink)); cursor: progress; }
-.vbtn.busy .i { animation: pulse 1s infinite; }
 .hmeta .err, dd.err { color: color-mix(in oklab, var(--bad) 80%, var(--ink)); }
 dd.err { display: flex; align-items: center; gap: 6px; }
 .lightbox { position: fixed; inset: 0; z-index: 90; background: rgb(0 0 0 / .9); display: grid; place-items: center; padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px)); animation: fade .2s; }

@@ -394,7 +394,6 @@ function buildSecs() {
       <textarea class="input ta" id="t-${k}" data-k="${k}" rows="3" placeholder="${SEC[k].ph}" aria-label="${SEC[k].label}"></textarea>
       <div class="clips" data-clips="${k}"></div>
       <div class="vbtns">
-        <button type="button" class="vbtn" data-dikte="${k}">${ICON('mic')}<span>Dikte</span></button>
         <button type="button" class="vbtn" data-rekam="${k}">${ICON('rec')}<span>Rekam</span></button>
       </div>
     </div>`).join('');
@@ -417,7 +416,6 @@ function renderClips(k) {
 }
 async function checkS2() {
   await stopRec(true);
-  if (transcribing) return toast('Tunggu, dikte sedang ditulis');
   for (const k of KEYS) {
     const s = S.sec[k];
     if (!s.text.trim() && !s.clips.length) {
@@ -569,8 +567,8 @@ async function onFiles(e) {
   toast(files.length > room ? `${ok} foto ditambahkan (maks ${CONFIG.MAX_FOTO})` : ok > 1 ? `${ok} foto ditambahkan` : 'Foto ditambahkan');
 }
 
-/* ---------- rekam & dikte (AI) ---------- */
-// Rekaman diubah ke WAV 16 kHz mono: bisa diputar di semua HP (termasuk iPhone) dan dibaca AI dikte.
+/* ---------- rekam suara ---------- */
+// Rekaman diubah ke WAV 16 kHz mono agar bisa diputar di semua HP, termasuk iPhone.
 function wavBlob(f32, rate) {
   const n = f32.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
   const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
@@ -594,10 +592,10 @@ async function toWav(blob) {
     return wavBlob(out.getChannelData(0), rate);
   } finally { if (ac.close) ac.close().catch(() => {}); }
 }
-let rec = null, recStarting = false, transcribing = 0;
-const recLabel = (r, s) => (r.kind === 'rekam' ? `${fmtDur(s)} / ${fmtDur(CONFIG.MAX_REKAM)}` : `Selesai ${fmtDur(s)}`);
-async function toggleRec(kind, k, btn) {
-  if (rec) { const same = rec.k === k && rec.kind === kind; await stopRec(true); if (same) return; }
+let rec = null, recStarting = false;
+const recLabel = s => `${fmtDur(s)} / ${fmtDur(CONFIG.MAX_REKAM)}`;
+async function toggleRec(k, btn) {
+  if (rec) { const same = rec.k === k; await stopRec(true); if (same) return; }
   if (recStarting || btn.disabled) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) return toast('Perekam suara belum didukung di browser ini');
   recStarting = true;
@@ -609,30 +607,29 @@ async function toggleRec(kind, k, btn) {
   let mr;
   try { mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); }
   catch (e) { stream.getTracks().forEach(t => t.stop()); return toast('Perekam suara gagal dimulai'); }
-  const chunks = [], lbl = btn.querySelector('span'), idle = kind === 'rekam' ? 'Rekam' : 'Dikte';
-  const r = { kind, k, btn, mr, t0: Date.now(), save: true };
+  const chunks = [], lbl = btn.querySelector('span');
+  const r = { k, btn, mr, t0: Date.now(), save: true };
   r.done = new Promise(res => {
     mr.onstop = async () => {
       if (r.stopped) return;
       r.stopped = true;
       stream.getTracks().forEach(t => t.stop());
-      clearInterval(r.timer); btn.classList.remove('rec', 'on'); lbl.textContent = idle;
+      clearInterval(r.timer); btn.classList.remove('rec'); lbl.textContent = 'Rekam';
       const dur = Math.min(CONFIG.MAX_REKAM, Math.max(1, Math.round((Date.now() - r.t0) / 1000)));
       try {
         if (r.save && chunks.length) {
           const raw = new Blob(chunks, { type: mr.mimeType || mime || 'audio/webm' });
-          if (kind === 'dikte') transcribe(k, raw, dur, btn);   // berjalan di belakang, dipantau lewat `transcribing`
-          else addClip(k, await toWav(raw).catch(() => raw), dur);
+          addClip(k, await toWav(raw).catch(() => raw), dur);
         }
       } finally { res(); }
     };
   });
   mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
   mr.start(1000);
-  btn.classList.add(kind === 'rekam' ? 'rec' : 'on'); lbl.textContent = recLabel(r, 0);
+  btn.classList.add('rec'); lbl.textContent = recLabel(0);
   r.timer = setInterval(() => {
     const s = (Date.now() - r.t0) / 1000;
-    if (s >= CONFIG.MAX_REKAM) { stopRec(true); toast('Maksimal 1 menit'); } else lbl.textContent = recLabel(r, Math.floor(s));
+    if (s >= CONFIG.MAX_REKAM) { stopRec(true); toast('Maksimal 1 menit'); } else lbl.textContent = recLabel(Math.floor(s));
   }, 250);
   rec = r;
 }
@@ -646,27 +643,6 @@ function addClip(k, blob, dur) {
   S.sec[k].clips.push({ blob, dur, mime: blob.type, url: URL.createObjectURL(blob) });
   renderClips(k); $('#sec-' + k).classList.remove('miss'); saveDraft();
 }
-async function transcribe(k, raw, dur, btn) {
-  transcribing++;
-  const lbl = btn.querySelector('span');
-  btn.disabled = true; btn.classList.add('busy'); lbl.textContent = 'Menulis…';
-  const wav = await toWav(raw).catch(() => raw);
-  try {
-    if (!S.user) throw new ApiError('Masuk dulu', 'AUTH');
-    const j = await Api.call('transcribe', Object.assign(creds(), { mime: wav.type, data: await toB64(wav) }), 90000);
-    const t = String(j.text || '').trim();
-    if (!t) { toast('Suara kurang jelas, coba ulangi'); return; }
-    const cur = S.sec[k].text.trim();
-    S.sec[k].text = cur ? `${cur} ${t}` : t;
-    $('#t-' + k).value = S.sec[k].text; $('#sec-' + k).classList.remove('miss'); saveDraft();
-  } catch (e) {
-    addClip(k, wav, dur);   // ucapan tidak hilang: disimpan sebagai rekaman
-    toast(e.net ? 'Tanpa internet: disimpan sebagai rekaman' : `${e.message}. Disimpan sebagai rekaman`);
-  } finally {
-    transcribing--; btn.disabled = false; btn.classList.remove('busy'); lbl.textContent = 'Dikte';
-  }
-}
-
 /* ---------- pengaturan ---------- */
 let installEvt = null;
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
@@ -747,8 +723,7 @@ document.addEventListener('click', e => {
   if (t.classList.contains('view')) { if (d.src) openLb(d.src); return; }
   if (d.delp) { const [k, i] = d.delp.split(':'); const [p] = S.sec[k].photos.splice(Number(i), 1); if (p) URL.revokeObjectURL(p.url); renderPhotos(k); return saveDraft(); }
   if (d.delc) { stopPlay(); const [k, i] = d.delc.split(':'); const [c] = S.sec[k].clips.splice(Number(i), 1); if (c) URL.revokeObjectURL(c.url); renderClips(k); return saveDraft(); }
-  if (d.dikte) return toggleRec('dikte', d.dikte, t);
-  if (d.rekam) return toggleRec('rekam', d.rekam, t);
+  if (d.rekam) return toggleRec(d.rekam, t);
   if (d.toko) { S.f.toko = d.toko; Store.set('lastToko', d.toko); closeSheet(); $('#tokoBtn').classList.remove('miss'); saveDraft(); return renderS1(); }
   if (d.h) return openDetail(d.h);
   if (d.pal) { S.pref.pal = d.pal; applyPref(); $$('[data-pal]').forEach(b => b.setAttribute('aria-pressed', b.dataset.pal === d.pal)); return; }
