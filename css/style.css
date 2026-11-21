@@ -307,6 +307,8 @@ dd.wait .i { width: 17px; height: 17px; }
 .ph.load, .ph.err { display: grid; place-items: center; color: var(--ink-3); }
 .spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid color-mix(in oklab, currentColor 25%, transparent); border-top-color: currentColor; animation: spin .7s linear infinite; flex: none; }
 .vbtn:disabled { opacity: .45; cursor: not-allowed; }
+.vbtn.busy { opacity: 1; background: color-mix(in oklab, var(--primary) 16%, var(--surface)); color: color-mix(in oklab, var(--primary) 80%, var(--ink)); cursor: progress; }
+.vbtn.busy .i { animation: pulse 1s infinite; }
 .hmeta .err, dd.err { color: color-mix(in oklab, var(--bad) 80%, var(--ink)); }
 dd.err { display: flex; align-items: center; gap: 6px; }
 .lightbox { position: fixed; inset: 0; z-index: 90; background: rgb(0 0 0 / .9); display: grid; place-items: center; padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px)); animation: fade .2s; }
