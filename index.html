@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ComHost</title>
+<meta name="description" content="Catat dan pantau hospitality crew di toko.">
+<meta name="theme-color" content="#0B7F6E">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ComHost">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800;900&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<script>
+  // Terapkan tema & warna sebelum halaman tampil agar tidak berkedip.
+  try {
+    var p = JSON.parse(localStorage.getItem('comhost_pref') || '{}');
+    if (p.theme && p.theme !== 'auto') document.documentElement.dataset.theme = p.theme;
+    if (p.pal && p.pal !== 'mint') document.documentElement.dataset.palette = p.pal;
+  } catch (e) {}
+</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 9V7M10 7h4"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7v8.5a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-nilai" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16.5" rx="3"/><path d="M9.5 3h5v3h-5zM9 13.5l2 2 4-4.5"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24"><path d="M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.3a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.2.1a2 2 0 0 1 1 1.7v.5a2 2 0 0 1-1 1.8l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.3a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.3a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.8v-.5a2 2 0 0 1 1-1.7l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.3a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></symbol>
+  <symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9.5 5.5 4h13L20 9.5M4 9.5V20h16V9.5M4 9.5c0 1.4 1.2 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5M10 20v-5h4v5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8.5 5v14M15.5 5v14"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 13V6a1.5 1.5 0 0 1 3 0v5.5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7 6.5 6.5 0 0 1-5-2.4l-2.3-2.9a1.5 1.5 0 0 1 2.3-1.9L8 16"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 19V6.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2V14a2 2 0 0 1-2 2H8.5z"/><path d="M9 9h6M9 12h4"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18.5a4.5 4.5 0 1 1 .9-8.9A6 6 0 0 1 19 11a3.8 3.8 0 0 1-1 7.5z"/><path d="M12 16.5v-5M9.5 14 12 11.5l2.5 2.5"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M10 4H6.5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2H10M14.5 16l4-4-4-4M18.5 12H9"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <div class="logo"><span class="mark"><svg class="i"><use href="#i-bell"/></svg></span>ComHost</div>
+    <button type="button" class="round push" id="setBtn" aria-label="Pengaturan"><svg class="i"><use href="#i-set"/></svg></button>
+  </header>
+
+  <!-- AKUN (pertama buka) -->
+  <section class="view" id="v-auth">
+    <div class="auth-hero"><span class="mark"><svg class="i"><use href="#i-bell"/></svg></span><h1>ComHost</h1></div>
+    <div class="seg full" id="authSeg"><button type="button" data-am="new" aria-pressed="true">Buat akun</button><button type="button" data-am="in" aria-pressed="false">Masuk</button></div>
+    <form class="card form" id="authForm" novalidate>
+      <div class="field"><label class="label" for="aNama">Nama</label><input class="input" id="aNama" autocomplete="off"></div>
+      <div class="field" id="aJabWrap"><label class="label" for="aJab">Jabatan</label><button type="button" class="input dd-btn" id="aJab" data-dd="aJab" aria-haspopup="listbox" aria-expanded="false"><span class="dd-val"></span><svg class="i"><use href="#i-down"/></svg></button></div>
+      <div class="field"><label class="label" for="aKode">Kode akses</label><input class="input" id="aKode" type="password" autocomplete="off"></div>
+      <button type="submit" class="btn-big" id="authBtn">Buat akun</button>
+    </form>
+  </section>
+
+  <!-- BERANDA -->
+  <section class="view" id="v-home" hidden>
+    <div class="home-main">
+    <div class="card hero">
+      <svg class="i orn" aria-hidden="true"><use href="#i-bell"/></svg>
+      <div>
+        <p class="sub" id="hDate"></p>
+        <h1>Halo, <span id="hName"></span></h1>
+      </div>
+    </div>
+    <div class="stats three">
+      <div class="card stat"><b id="stToday"></b><span>Hari ini</span></div>
+      <div class="card stat"><b id="stWeek"></b><span>Minggu ini</span></div>
+      <div class="card stat"><b id="stAll"></b><span>Semua</span></div>
+    </div>
+    <div class="card row-card" id="draftCard" hidden>
+      <span class="ib"><svg class="i"><use href="#i-pen"/></svg></span>
+      <div class="txt"><b>Lanjutkan penilaian</b><small id="draftSub"></small></div>
+      <button type="button" class="pill" data-go="nilai">Buka</button>
+    </div>
+    </div>
+    <div class="home-side">
+      <div class="sec-title"><h2>Riwayat saya</h2><button type="button" class="pill" id="sendNow" hidden>Kirim sekarang</button></div>
+      <div class="stack" id="myList"></div>
+    </div>
+  </section>
+
+  <!-- NILAI -->
+  <section class="view" id="v-nilai" hidden>
+    <div class="steps" id="steps"><span class="on">Data</span><span>Penilaian</span><span>Cek</span></div>
+
+    <div class="stack" id="s1">
+      <div class="meta">
+        <span><svg class="i"><use href="#i-cal"/></svg><b id="mDate"></b></span>
+        <span><svg class="i"><use href="#i-clock"/></svg><b id="mTime"></b></span>
+        <span><svg class="i"><use href="#i-user"/></svg><b id="mPen"></b></span>
+      </div>
+      <div class="card form">
+        <div class="field">
+          <span class="label">Toko</span>
+          <button type="button" class="input pick" id="tokoBtn"><svg class="i"><use href="#i-store"/></svg><span id="tokoVal"></span><svg class="i"><use href="#i-down"/></svg></button>
+        </div>
+        <div class="field">
+          <label class="label" for="fDin">Dinilai</label>
+          <div class="pair">
+            <input class="input" id="fDin" placeholder="Nama" list="dlNama" autocomplete="off">
+            <button type="button" class="input dd-btn" id="fJDin" data-dd="fJDin" aria-label="Jabatan yang dinilai" aria-haspopup="listbox" aria-expanded="false"><span class="dd-val"></span><svg class="i"><use href="#i-down"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn-big" id="toS2">Lanjut</button>
+    </div>
+
+    <div class="stack" id="s2" hidden>
+      <div class="card who" id="whoChip"></div>
+      <div class="stack" id="secs"></div>
+      <div class="actions"><button type="button" class="btn-plain" data-step="1">Kembali</button><button type="button" class="btn-big" id="toS3">Lanjut</button></div>
+    </div>
+
+    <div class="stack" id="s3" hidden>
+      <div class="card"><dl id="sumHead"></dl></div>
+      <div class="stack" id="sumBody"></div>
+      <div class="actions"><button type="button" class="btn-plain" data-step="2">Ubah</button><button type="button" class="btn-big" id="kirim"><svg class="i"><use href="#i-send"/></svg><span>Kirim</span></button></div>
+    </div>
+  </section>
+
+  <!-- RIWAYAT -->
+  <section class="view" id="v-riwayat" hidden>
+    <div class="title-row"><h1>Riwayat</h1><button type="button" class="btn-out push" id="xlsBtn"><svg class="i"><use href="#i-dl"/></svg>Unduh Excel</button></div>
+    <label class="search"><svg class="i"><use href="#i-search"/></svg><input id="fCari" placeholder="Cari nama atau toko" autocomplete="off"></label>
+    <div class="filters">
+      <button type="button" class="fbtn dd-btn" id="fToko" data-dd="fToko" aria-label="Filter toko" aria-haspopup="listbox" aria-expanded="false"><span class="dd-val"></span><svg class="i"><use href="#i-down"/></svg></button>
+      <button type="button" class="fbtn dd-btn" id="fPenF" data-dd="fPenF" aria-label="Filter penilai" aria-haspopup="listbox" aria-expanded="false"><span class="dd-val"></span><svg class="i"><use href="#i-down"/></svg></button>
+      <button type="button" class="fbtn dd-btn" id="fTgl" data-dd="fTgl" aria-label="Filter tanggal" aria-haspopup="listbox" aria-expanded="false"><span class="dd-val"></span><svg class="i"><use href="#i-down"/></svg></button>
+    </div>
+    <p class="sub" id="histCount"></p>
+    <div class="stack" id="histList"></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Menu">
+  <div class="bar">
+    <button type="button" data-tab="home" aria-current="page"><svg class="i"><use href="#i-home"/></svg><span>Beranda</span></button>
+    <button type="button" data-tab="nilai"><svg class="i"><use href="#i-nilai"/></svg><span>Nilai</span></button>
+    <button type="button" data-tab="riwayat" id="tabRiwayat" hidden><svg class="i"><use href="#i-hist"/></svg><span>Riwayat</span></button>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden><div class="grab"></div><div class="sbody" id="sheetBody"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="dd-pop" id="ddPop" role="listbox" hidden></div>
+<div class="lightbox" id="lightbox" hidden><img id="lbImg" alt="Foto"><button type="button" class="round" data-close-lb aria-label="Tutup foto"><svg class="i"><use href="#i-x"/></svg></button></div>
+<div class="done" id="done" hidden><div class="done-in"><div class="burst"><svg class="i"><use href="#i-check"/></svg></div><h2>Terkirim</h2><p class="sub" id="doneSub"></p></div></div>
+<datalist id="dlNama"></datalist>
+<input type="file" id="fCam" accept="image/*" capture="environment" hidden>
+<input type="file" id="fGal" accept="image/*" multiple hidden>
+<audio id="player" preload="none" hidden></audio>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
