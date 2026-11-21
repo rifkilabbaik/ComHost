@@ -10,6 +10,10 @@
  *   Jabatan    — daftar jabatan (dibuat otomatis, bisa diubah).
  *   Member     — akun penilai. Role default "Member"; ganti ke "Admin" agar bisa melihat semua riwayat.
  *   Penilaian  — hasil penilaian. Foto & rekaman disimpan di folder Drive "ComHost".
+ *
+ * AI dikte (suara → teks) memakai Gemini. Isi API key di Project Settings → Script properties:
+ *   GEMINI_API_KEY = <key dari aistudio.google.com>
+ *   GEMINI_MODEL   = (opsional) nama model, default di konstanta GEMINI_MODEL.
  */
 const APP = 'ComHost';
 const VERSION = '1.0';
@@ -26,6 +30,10 @@ const SECS = [['situasi', 'Situasi', true], ['tindakan', 'Tindakan', true], ['ko
 const MAX_REKAM = 60;   // detik
 const MAX_FOTO = 30;    // per bagian
 const MAX_SUARA = 10;   // per bagian
+const GEMINI_MODEL = 'gemini-flash-latest';
+const DIKTE_PROMPT = 'Transkripsikan rekaman suara ini menjadi teks bahasa Indonesia persis seperti yang diucapkan. ' +
+  'Tulis hanya hasil transkripsi dengan tanda baca yang wajar, tanpa judul, label pembicara, catatan, atau tanda kutip. ' +
+  'Jika tidak ada ucapan yang jelas, balas dengan teks kosong.';
 
 /* ---------- pintu masuk ---------- */
 function doGet(e) { return run_((e && e.parameter) || {}); }
@@ -36,7 +44,7 @@ function doPost(e) {
   return run_(p);
 }
 function run_(p) {
-  const actions = { ping: () => ({}), master: master_, register: register_, login: login_, sync: sync_, riwayat: riwayat_, submit: submit_, media: media_ };
+  const actions = { ping: () => ({}), master: master_, register: register_, login: login_, sync: sync_, riwayat: riwayat_, submit: submit_, media: media_, transcribe: transcribe_ };
   try {
     const fn = actions[p.action];
     if (!fn) fail_('Aksi tidak dikenal');
@@ -109,7 +117,7 @@ function submit_(p) {
   const folder = folder_(), made = [];
   const save = (k, kind, list, max) => (list || []).slice(0, max).map((x, i) => {
     const mime = String(x.mime || (kind === 'foto' ? 'image/jpeg' : 'audio/webm')).split(';')[0];
-    const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'audio/webm': 'webm', 'audio/mp4': 'm4a',
+    const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'audio/wav': 'wav', 'audio/webm': 'webm', 'audio/mp4': 'm4a',
       'audio/ogg': 'ogg', 'audio/mpeg': 'mp3', 'audio/aac': 'aac' }[mime] || 'bin';
     const f = folder.createFile(Utilities.newBlob(Utilities.base64Decode(String(x.data || '')), mime, `${id}_${k}_${kind}${i + 1}.${ext}`));
     f.setDescription(JSON.stringify({ app: APP, rec: id, pen: m.nama }));
@@ -148,6 +156,35 @@ function media_(p) {
   if (m.role !== 'Admin' && String(meta.pen || '').toLowerCase() !== m.key) fail_('Tidak punya akses', 'ROLE');
   const b = f.getBlob();
   return { mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) };
+}
+
+/** AI dikte: rekaman (base64) → teks, lewat Gemini. Hanya untuk akun yang masuk. */
+function transcribe_(p) {
+  auth_(p);
+  const props = PropertiesService.getScriptProperties(), key = props.getProperty('GEMINI_API_KEY');
+  if (!key) fail_('AI dikte belum aktif. Admin perlu mengisi GEMINI_API_KEY di Apps Script', 'AI_OFF');
+  const data = String(p.data || '');
+  if (!data) fail_('Rekaman kosong');
+  if (data.length > 14e6) fail_('Rekaman terlalu panjang');
+  const model = props.getProperty('GEMINI_MODEL') || GEMINI_MODEL;
+  const res = UrlFetchApp.fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true, headers: { 'x-goog-api-key': key },
+    payload: JSON.stringify({
+      contents: [{ parts: [{ text: DIKTE_PROMPT }, { inline_data: { mime_type: String(p.mime || 'audio/wav').split(';')[0], data } }] }],
+      generationConfig: { temperature: 0 }
+    })
+  });
+  const code = res.getResponseCode();
+  let j = {};
+  try { j = JSON.parse(res.getContentText()); } catch (e) { /* respons bukan JSON */ }
+  if (code !== 200) {
+    console.warn('Gemini %s: %s', code, res.getContentText().slice(0, 500));
+    if (code === 429) fail_('AI sedang sibuk, coba lagi sebentar');
+    if (code === 400 || code === 401 || code === 403 || code === 404) fail_('AI dikte gagal: cek GEMINI_API_KEY atau GEMINI_MODEL', 'AI_OFF');
+    fail_('AI dikte gagal, coba lagi');
+  }
+  const parts = (((j.candidates || [])[0] || {}).content || {}).parts || [];
+  return { text: parts.map(x => x.text || '').join('').trim() };
 }
 
 /* ---------- data ---------- */
